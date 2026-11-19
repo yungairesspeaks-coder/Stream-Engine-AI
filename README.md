@@ -11,3 +11,6 @@ Starter web app for ethical AI-assisted music marketing. Includes account regist
 TikTok publishing is deliberately disabled. Before implementing it, complete TikTok developer app review, creator OAuth, secure token refresh, licensed video hosting, post status tracking, and explicit approval. Do not automate Spotify streams, plays, follows or engagement. Link clicks are not Spotify streams.
 
 This is an MVP starter, not a production-ready 2,000-video renderer or auto-publisher. It does not render video files or publish automatically.
+
+## TikTok URL verification
+`src/tiktok-url-verifier.js` validates HTTPS TikTok video URLs against official TikTok hostnames and canonical video URL structure. The authenticated endpoint `POST /api/tools/verify-tiktok-url` accepts `{ "url": "https://www.tiktok.com/@creator/video/1234567890123456789" }`. TikTok short links are recognized as `needs_resolution`; the verifier does not follow redirects or claim that a video is live. Run checks with `npm test`.

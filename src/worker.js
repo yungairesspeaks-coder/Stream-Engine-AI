@@ -1,0 +1,1 @@
+console.log("Publisher worker is intentionally not enabled in this starter. Complete TikTok app review, video hosting, token refresh and approval workflow before enabling publishing.");

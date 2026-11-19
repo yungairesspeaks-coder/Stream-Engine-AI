@@ -8,4 +8,5 @@ async function generateConcepts({songTitle,genre,brief,count=20}) {
  ]});
  return (JSON.parse(r.choices[0].message.content||"{}").concepts||[]).slice(0,count);
 }
-module.exports={generateConcepts};
+async function generateVisual(prompt){const client=new OpenAI({apiKey:process.env.OPENAI_API_KEY});const r=await client.images.generate({model:process.env.OPENAI_IMAGE_MODEL||"gpt-image-2.6-flare",prompt,size:"1024x1536",quality:"medium",n:1,output_format:"png"});const b64=r.data?.[0]?.b64_json;if(!b64)throw Error("OpenAI returned no image data.");return b64}
+module.exports={generateConcepts,generateVisual};

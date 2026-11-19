@@ -1,0 +1,2 @@
+async function postVideo(){if(process.env.TIKTOK_DIRECT_POST_ENABLED!=="true")throw Error("TikTok Direct Post disabled pending app review and creator authorization.");throw Error("Publishing adapter requires production video hosting and TikTok approval.");}
+module.exports={postVideo};

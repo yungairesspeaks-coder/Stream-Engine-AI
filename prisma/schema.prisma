@@ -30,14 +30,19 @@ model Campaign {
 }
 
 model VideoAsset {
-  id         String   @id @default(cuid())
-  campaignId String
-  concept    String
-  caption    String
-  hashtags   String
-  status     String   @default("IDEA")
-  createdAt  DateTime @default(now())
-  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  campaignId    String
+  concept       String
+  hook          String   @default("")
+  script        String   @default("")
+  videoPrompt   String   @default("")
+  caption       String
+  hashtags      String
+  status        String   @default("IDEA")
+  openaiVideoId String?  @unique
+  videoStatus   String   @default("NOT_STARTED")
+  createdAt     DateTime @default(now())
+  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 }
 
 model ScheduledPost {

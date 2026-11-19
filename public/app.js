@@ -18,6 +18,7 @@ $("#campaign").addEventListener("submit",async e=>{e.preventDefault();const b=Ob
 $("#campaign").elements.songUrl.addEventListener("change",e=>renderSpotify(e.target.value));
 $("#refreshTikTok").addEventListener("click",()=>refreshTikTok().catch(()=>{}));
 $("#checkTikTokPost").addEventListener("click",checkTikTokPost);
+$("#testTikTokCreator").addEventListener("click",testTikTokCreator);
 $("#connectTikTok").addEventListener("click",e=>{e.preventDefault();location.href="/api/tiktok/connect"});
 
 if(new URLSearchParams(location.search).get("tiktok")==="connected"){history.replaceState({}, "", "/");showMessage("TikTok creator account connected successfully.");}\n(async()=>{try{await api("/health");$("#health").textContent="Railway API online"}catch{$("#health").textContent="Connecting to Railway API…"}await load()})();

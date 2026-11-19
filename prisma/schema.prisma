@@ -17,15 +17,16 @@ model User {
 }
 
 model Campaign {
-  id        String       @id @default(cuid())
-  userId    String
-  title     String
-  songUrl   String
-  genre     String?
-  brief     String?
-  createdAt DateTime     @default(now())
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  videos    VideoAsset[]
+  id             String          @id @default(cuid())
+  userId         String
+  title          String
+  songUrl        String
+  genre          String?
+  brief          String?
+  createdAt      DateTime        @default(now())
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videos         VideoAsset[]
+  scheduledPosts ScheduledPost[]
 }
 
 model VideoAsset {
@@ -37,4 +38,15 @@ model VideoAsset {
   status     String   @default("IDEA")
   createdAt  DateTime @default(now())
   campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model ScheduledPost {
+  id          String   @id @default(cuid())
+  campaignId  String
+  scheduledAt DateTime
+  caption     String
+  status      String   @default("DRAFT_AWAITING_TIKTOK_AUTH")
+  createdAt   DateTime @default(now())
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  @@index([scheduledAt, status])
 }

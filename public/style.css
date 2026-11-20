@@ -94,3 +94,11 @@ footer{font-size:11px;padding:18px 4px;letter-spacing:.08em;text-transform:upper
 .auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 #health{font-size:13px;letter-spacing:.04em}
 @media(max-width:760px){main{padding:14px}.auth-grid,.studio-grid,.features,.growth-grid,.experiment-panel form,.playlist-layout,.tiktok-tools{grid-template-columns:1fr}.hero,.panel{padding:19px}.hero{padding:28px 20px}.section-head{align-items:flex-start}.reward-balance{grid-template-columns:1fr 1fr}.redeem-row{grid-template-columns:1fr}.tiktok-tools button{max-width:none}.playlist-queue-item{align-items:flex-start;flex-direction:column}}
+
+.remember-option{display:flex;align-items:center;gap:9px}.remember-option input{width:auto;margin:0}
+.promotion-create,.promotion-tracker{margin-top:20px;padding:18px;border:1px solid var(--steel);background:#111719}
+.promotion-track-preview,.promotion-row{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);background:#0d1215;margin:10px 0}
+.promotion-artwork{width:104px;height:104px;object-fit:cover;border:1px solid var(--steel);border-radius:2px}.promotion-artwork.small{width:64px;height:64px}
+.promotion-row>div{flex:1;min-width:0}.promotion-row p{margin:3px 0}.promotion-row a{white-space:nowrap}
+.promotion-status-group{margin:14px 0}.promotion-status-group h4{color:var(--amber2);text-transform:uppercase;letter-spacing:.12em}
+@media(max-width:560px){.promotion-row{align-items:flex-start;flex-wrap:wrap}.promotion-track-preview{align-items:flex-start;flex-wrap:wrap}.promotion-artwork{width:84px;height:84px}}

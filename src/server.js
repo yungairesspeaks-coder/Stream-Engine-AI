@@ -69,7 +69,7 @@ async function verifyAdMobSsv(req){
   if(!token)throw Error("Missing reward session token.");
   const session=jwt.verify(token,process.env.JWT_SECRET);
   if(session.kind!=="admob_reward"||!session.sub||params.get("user_id")!==session.sub)throw Error("Invalid reward session user.");
-  const expectedUnits=[process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID,process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID].filter(Boolean);
+  const expectedUnits=[process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID].filter(Boolean);
   if(!expectedUnits.includes(params.get("ad_unit")))throw Error("Unexpected AdMob ad unit.");
   if(params.get("reward_item")!==(process.env.ADMOB_REWARD_ITEM||"campaign_credits"))throw Error("Unexpected AdMob reward item.");
   const expectedAmount=Number(process.env.ADMOB_REWARD_AMOUNT||"10");
@@ -94,8 +94,9 @@ app.post("/api/spotify-ads/select-account",auth,async(req,res)=>{const p=z.objec
 app.get("/api/spotify-ads/campaigns",auth,async(req,res)=>{try{const c=await db.spotifyAdsConnection.findUnique({where:{userId:req.uid}});if(!c?.selectedAdAccountId)return res.status(400).json({error:"Connect Spotify Ads and select an ad account first."});const result=await spotifyAdsRequest(req.uid,"/ad_accounts/"+encodeURIComponent(c.selectedAdAccountId)+"/campaigns");res.json(result.items||result.data||result)}catch(e){res.status(e.status||502).json({error:e.message})}});
 app.post("/api/spotify-ads/campaigns",auth,async(req,res)=>{const p=z.object({name:z.string().trim().min(3).max(120),confirmCreateContainer:z.literal(true)}).safeParse(req.body);if(!p.success)return res.status(400).json({error:"Enter a campaign name and confirm creation."});try{const c=await db.spotifyAdsConnection.findUnique({where:{userId:req.uid}});if(!c?.selectedAdAccountId)return res.status(400).json({error:"Select your Spotify Ads Manager account first."});const result=await spotifyAdsRequest(req.uid,"/ad_accounts/"+encodeURIComponent(c.selectedAdAccountId)+"/campaigns",{method:"POST",headers:{"Content-Type":"application/json","Idempotency-Key":crypto.randomUUID()},body:JSON.stringify({name:p.data.name,delivery_goal_group:"AWARENESS"})});res.status(201).json({ok:true,campaign:result,note:"Campaign container created in Spotify Ads Manager. It does not run or spend money until you configure and publish its ad sets and ads in Ads Manager."})}catch(e){res.status(e.status||502).json({error:e.message,detail:e.detail})}});
 
+app.get("/api/rewards/admob-config",(req,res)=>res.json({androidRewardedAdUnitId:process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID||null,enabled:Boolean(process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID)}));
 app.post("/api/rewards/admob-session",auth,async(req,res)=>{
-  if(!process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID&&!process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID)return res.status(503).json({error:"AdMob rewarded ad units are not configured yet."});
+  if(!process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID)return res.status(503).json({error:"Android AdMob rewarded ad unit is not configured yet."});
   const customData=jwt.sign({sub:req.uid,kind:"admob_reward"},process.env.JWT_SECRET,{expiresIn:"10m",issuer:"stream-engine-ai"});
   res.json({customData,userId:req.uid,expiresInSeconds:600,rewardCredits:Number(process.env.ADMOB_REWARD_CREDITS||"10")});
 });

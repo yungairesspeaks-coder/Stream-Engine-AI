@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express=require("express"),helmet=require("helmet"),rateLimit=require("express-rate-limit"),bcrypt=require("bcryptjs"),jwt=require("jsonwebtoken"),cookie=require("cookie-parser"),{PrismaClient}=require("@prisma/client"),{z}=require("zod"),{generateConcepts}=require("./ai"),{classifyCampaignFunding,canTransitionCampaign}=require("./promotion"),crypto=require("node:crypto");
 const app=express(),db=new PrismaClient();
+// Railway terminates TLS and forwards the original client IP through one trusted proxy hop.
+app.set("trust proxy",1);
 app.use(helmet({contentSecurityPolicy:false}));
 app.use(express.json({limit:"1mb",verify:(req,res,buf)=>{req.rawBody=Buffer.from(buf)}}));
 app.use(cookie());

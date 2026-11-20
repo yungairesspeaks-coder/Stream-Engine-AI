@@ -21,6 +21,7 @@ model User {
   tiktokScopes String?
   tiktokUsername String?
   growthExperiments GrowthExperiment[]
+  playlistCandidates PlaylistCandidate[]
 }
 
 model Campaign {
@@ -75,4 +76,23 @@ model GrowthExperiment {
  createdAt DateTime @default(now())
  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
  @@index([userId,createdAt])
+}
+
+model PlaylistCandidate {
+ id String @id @default(cuid())
+ userId String
+ title String
+ trackUrl String
+ releaseDate DateTime
+ genre String
+ mood String
+ description String
+ marketingPlan String
+ score Int @default(0)
+ targetsJson String
+ pitchDraft String
+ status String @default("DRAFT")
+ createdAt DateTime @default(now())
+ user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+ @@index([userId,score])
 }

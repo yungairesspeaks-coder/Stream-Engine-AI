@@ -20,6 +20,7 @@ model User {
   tiktokOpenId String?
   tiktokScopes String?
   tiktokUsername String?
+  growthExperiments GrowthExperiment[]
 }
 
 model Campaign {
@@ -60,4 +61,18 @@ model ScheduledPost {
   createdAt   DateTime @default(now())
   campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   @@index([scheduledAt, status])
+}
+
+model GrowthExperiment {
+ id String @id @default(cuid())
+ userId String
+ channel String
+ spend Float @default(0)
+ clicks Int @default(0)
+ saves Int @default(0)
+ newListeners Int @default(0)
+ notes String?
+ createdAt DateTime @default(now())
+ user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+ @@index([userId,createdAt])
 }

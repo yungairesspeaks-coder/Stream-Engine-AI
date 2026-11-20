@@ -34,6 +34,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install mobile dependencies
+        run: npm install --no-audit --no-fund
+
       - name: Link or create EAS project
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

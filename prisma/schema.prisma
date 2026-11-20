@@ -132,8 +132,6 @@ model SponsorCampaignCredit {
   credits Int
   status String @default("AVAILABLE")
   createdAt DateTime @default(now())
-  promotionCampaignId String? @unique
-  promotionCampaign PromotionCampaign? @relation(fields: [promotionCampaignId], references: [id], onDelete: SetNull)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, status])
 }
@@ -170,6 +168,5 @@ model PromotionCampaign {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  creditReservation SponsorCampaignCredit?
   @@index([userId, status, createdAt])
 }

@@ -1,3 +1,4 @@
+// Gotham refresh: build the native shell against the updated remote platform skin.
 import React, {useEffect, useRef, useState} from "react";
 import {ActivityIndicator, Alert, BackHandler, Linking, SafeAreaView, StatusBar, Text, View} from "react-native";
 import {WebView} from "react-native-webview";

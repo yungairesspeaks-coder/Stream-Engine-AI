@@ -25,7 +25,7 @@ Set the EAS build variables `ADMOB_ANDROID_APP_ID` and `ADMOB_IOS_APP_ID` to you
 
 `https://yung-aires-stream-engine-ai-production.up.railway.app/webhooks/admob/reward`
 
-The ad unit reward item must be `campaign_credits` and reward amount must match Railway `ADMOB_REWARD_AMOUNT` (default 10). The amount of internal credits per completion is `ADMOB_REWARD_CREDITS` (default 10). Set Railway variables `ADMOB_REWARDED_AD_UNIT_ID` (exact AdMob ad unit ID), `ADMOB_REWARD_ITEM=campaign_credits`, `ADMOB_REWARD_AMOUNT=10`, and `ADMOB_REWARD_CREDITS=10`.
+The ad unit reward item must be `campaign_credits` and reward amount must match Railway `ADMOB_REWARD_AMOUNT` (default 10). The amount of internal credits per completion is `ADMOB_REWARD_CREDITS` (default 10). Set Railway variables `ADMOB_ANDROID_REWARDED_AD_UNIT_ID` and `ADMOB_IOS_REWARDED_AD_UNIT_ID` (the exact platform ad unit IDs; set both), `ADMOB_REWARD_ITEM=campaign_credits`, `ADMOB_REWARD_AMOUNT=10`, and `ADMOB_REWARD_CREDITS=10`.
 
 AdMob SSV callbacks are verified against Google's published verifier keys. Do not grant credits based on the native client event alone. See Google's official SSV guide: https://developers.google.com/admob/android/next-gen/ssv
 

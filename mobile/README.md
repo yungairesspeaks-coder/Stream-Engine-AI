@@ -7,7 +7,7 @@ This Expo native shell loads the existing Railway app and provides native Google
 ```bash
 cd mobile
 npm install
-npx expo start
+npx expo prebuild\nnpx expo run:android\n# On macOS with Xcode installed:\nnpx expo run:ios
 ```
 
 The app uses Google's official test rewarded-ad unit while running in development. Test ads must remain enabled during development.
@@ -36,4 +36,4 @@ npx eas-cli build --platform android --profile production
 npx eas-cli build --platform ios --profile production
 ```
 
-An Apple Developer account is required for iOS distribution. An Android package/signing setup and Google Play developer account are required to publish on Google Play. This repository change does not itself submit either store listing.
+The native ads module does not run inside standard Expo Go; use a development build or prebuilt native app. An Apple Developer account and macOS/Xcode are required for iOS device builds and distribution. An Android package/signing setup and Google Play developer account are required to publish on Google Play. This repository change does not itself submit either store listing.

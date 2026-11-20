@@ -4,8 +4,8 @@ import {WebView} from "react-native-webview";
 import mobileAds, {RewardedAd, RewardedAdEventType, TestIds} from "react-native-google-mobile-ads";
 
 const SITE_URL = "https://yung-aires-stream-engine-ai-production.up.railway.app/";
-const ANDROID_AD_UNIT = process.env.EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID || TestIds.REWARDED;
-const IOS_AD_UNIT = process.env.EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID || TestIds.REWARDED;
+const ANDROID_AD_UNIT = process.env.EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID;
+const IOS_AD_UNIT = process.env.EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID;
 const AD_UNIT_ID = __DEV__ ? TestIds.REWARDED : (Platform.OS === "ios" ? IOS_AD_UNIT : ANDROID_AD_UNIT);
 
 export default function App() {
@@ -29,6 +29,7 @@ export default function App() {
     try { data = JSON.parse(event.nativeEvent.data); } catch { return; }
     if (data?.type !== "SHOW_ADMOB_REWARDED") return;
     if (!ready) { setMessage("Ad service is still starting. Try again in a moment."); return; }
+    if (!AD_UNIT_ID) { setMessage("AdMob is not configured for this app build yet. Add your platform rewarded ad unit ID."); return; }
     if (!data.customData || !data.userId || String(data.customData).length > 1500) {
       setMessage("The reward session could not be validated. Sign in again."); return;
     }

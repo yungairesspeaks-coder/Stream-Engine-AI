@@ -16,10 +16,12 @@ The app uses Google's official test rewarded-ad unit while running in developmen
 
 Set these EAS environment variables before production builds:
 
-- `EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID`
-- `EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID`
+- `ADMOB_ANDROID_APP_ID` — your Android AdMob App ID
+- `ADMOB_IOS_APP_ID` — your iOS AdMob App ID
+- `EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID` — Android rewarded ad unit ID
+- `EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID` — iOS rewarded ad unit ID
 
-Replace the sample test AdMob App IDs in `app.json` with your own Android and iOS AdMob App IDs before store release. Configure each AdMob rewarded ad unit's Server-side verification callback URL to:
+Set the EAS build variables `ADMOB_ANDROID_APP_ID` and `ADMOB_IOS_APP_ID` to your real AdMob App IDs before production builds. The config plugin uses Google's sample test App IDs only as development defaults. Configure each AdMob rewarded ad unit's Server-side verification callback URL to:
 
 `https://yung-aires-stream-engine-ai-production.up.railway.app/webhooks/admob/reward`
 

@@ -26,7 +26,11 @@ export default function App() {
     try { data = JSON.parse(event.nativeEvent.data); } catch { return; }
     if (data?.type !== "SHOW_ADMOB_REWARDED") return;
     if (!ready) { setMessage("Ad service is still starting. Try again in a moment."); return; }
-    if (!data.customData || !data.userId || String(data.customData).length > 1500) {
+    const isTestMode = USE_TEST_ADS && data.testMode === true;
+    if ((USE_TEST_ADS && !isTestMode) || (!USE_TEST_ADS && data.testMode)) {
+      setMessage("Ad request mode does not match this app build."); return;
+    }
+    if (!isTestMode && (!data.customData || !data.userId || String(data.customData).length > 1500)) {
       setMessage("The reward session could not be validated. Sign in again."); return;
     }
     let adUnitId = TestIds.REWARDED;
@@ -41,7 +45,7 @@ export default function App() {
     setMessage("Loading a rewarded ad…");
     const ad = RewardedAd.createForAdRequest(adUnitId, {
       requestNonPersonalizedAdsOnly: true,
-      serverSideVerificationOptions: {userId: String(data.userId), customData: String(data.customData)}
+      ...(isTestMode ? {} : {serverSideVerificationOptions: {userId: String(data.userId), customData: String(data.customData)}})
     });
     adRef.current = ad;
     let earned = false;
@@ -57,12 +61,12 @@ export default function App() {
     });
     unsubEarned = ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
       earned = true;
-      setMessage("Ad completed. Google is verifying your reward; credits appear after server confirmation.");
+      setMessage(isTestMode ? "Test ad completed. Preview ads do not issue campaign credits." : "Ad completed. Google is verifying your reward; credits appear after server confirmation.");
     });
     unsubClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
       if (closed) return;
       closed = true;
-      setMessage(earned ? "Reward verification pending. Refresh your wallet shortly." : "Ad closed before completion. No credits were earned.");
+      setMessage(isTestMode ? (earned ? "Test ad completed. No credits are issued in preview." : "Test ad closed before completion.") : (earned ? "Reward verification pending. Refresh your wallet shortly." : "Ad closed before completion. No credits were earned."));
       cleanup();
       setTimeout(() => web.current?.injectJavaScript("window.location.reload(); true;"), 2500);
     });
@@ -82,7 +86,7 @@ export default function App() {
         <Text accessibilityLiveRegion="polite" style={{color:"#a5b4fc",fontSize:12,marginTop:3}}>{message}</Text>
       </View>
       {!ready && <View style={{padding:6}}><ActivityIndicator color="#a5b4fc" /></View>}
-      <WebView ref={web} source={{uri:SITE_URL}} onMessage={onWebMessage} javaScriptEnabled domStorageEnabled sharedCookiesEnabled thirdPartyCookiesEnabled allowsBackForwardNavigationGestures setSupportMultipleWindows={false} originWhitelist={["https://*"]} onError={() => Alert.alert("Connection issue","Could not load Stream Engine AI. Check your internet connection.")} style={{flex:1,backgroundColor:"#090b14"}} />
+      <WebView ref={web} source={{uri:SITE_URL}} onLoadEnd={() => web.current?.injectJavaScript("window.STREAM_ENGINE_ADMOB_TEST_MODE = "+(USE_TEST_ADS?"true":"false")+"; true;")} onMessage={onWebMessage} javaScriptEnabled domStorageEnabled sharedCookiesEnabled thirdPartyCookiesEnabled allowsBackForwardNavigationGestures setSupportMultipleWindows={false} originWhitelist={["https://*"]} onError={() => Alert.alert("Connection issue","Could not load Stream Engine AI. Check your internet connection.")} style={{flex:1,backgroundColor:"#090b14"}} />
     </SafeAreaView>
   );
 }

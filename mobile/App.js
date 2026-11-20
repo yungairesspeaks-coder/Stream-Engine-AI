@@ -4,6 +4,7 @@ import {WebView} from "react-native-webview";
 import mobileAds, {AdEventType, RewardedAd, RewardedAdEventType, TestIds} from "react-native-google-mobile-ads";
 
 const SITE_URL = "https://yung-aires-stream-engine-ai-production.up.railway.app/";
+const USE_TEST_ADS = __DEV__ || process.env.EXPO_PUBLIC_ADMOB_TEST_ADS === "true";
 
 export default function App() {
   const web = useRef(null);
@@ -29,7 +30,7 @@ export default function App() {
       setMessage("The reward session could not be validated. Sign in again."); return;
     }
     let adUnitId = TestIds.REWARDED;
-    if (!__DEV__) {
+    if (!USE_TEST_ADS) {
       try {
         const response = await fetch(SITE_URL + "api/rewards/admob-config");
         const config = await response.json();

@@ -6,13 +6,6 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "streamengineai",
-    "ios": {
-      "bundleIdentifier": "com.yungaires.streamengineai",
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSUserTrackingUsageDescription": "Tracking permission is requested only if needed for relevant advertising."
-      }
-    },
     "android": {
       "package": "com.yungaires.streamengineai",
       "permissions": [
@@ -26,13 +19,9 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713"
         }
       ]
-    ],
-    "extra": {
-      "eas": {}
-    }
+    ]
   }
 }

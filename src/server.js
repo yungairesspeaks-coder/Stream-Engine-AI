@@ -57,19 +57,22 @@ async function verifyAdMobSsv(req){
   // AdMob console URL verification may send a signed ping without an app JWT.
   // A valid Google signature is required, but verification pings never earn credits.
   const token=params.get("custom_data");
+  // Google's console URL-verification ping is signed but has no app-issued reward session.
   if(!token)return {verificationOnly:true};
   let session;
   try{session=jwt.verify(token,process.env.JWT_SECRET,{issuer:"stream-engine-ai"})}
-  catch{return {verificationOnly:true}}
-  if(session.kind!=="admob_reward"||!session.sub||params.get("user_id")!==session.sub)return {verificationOnly:true};
-  const expectedUnits=[process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID].filter(Boolean);
-  if(!expectedUnits.includes(params.get("ad_unit")))throw Error("Unexpected AdMob ad unit.");
+  catch{throw Error("Invalid or expired AdMob reward session.");}
+  if(session.kind!=="admob_reward"||!session.sub)throw Error("Invalid AdMob reward session claims.");
+  if(params.get("user_id")!==session.sub)throw Error("AdMob user ID does not match the reward session.");
+  const expectedAdUnit=process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID;
+  if(!expectedAdUnit||params.get("ad_unit")!==expectedAdUnit||session.adUnit!==expectedAdUnit)throw Error("Unexpected AdMob rewarded ad unit.");
   if(params.get("reward_item")!==(process.env.ADMOB_REWARD_ITEM||"campaign_credits"))throw Error("Unexpected AdMob reward item.");
-  const expectedAmount=Number(process.env.ADMOB_REWARD_AMOUNT||"10");
-  if(Number(params.get("reward_amount"))!==expectedAmount)throw Error("Unexpected AdMob reward amount.");
+  const expectedCredits=Number(process.env.ADMOB_REWARD_CREDITS||"10");
+  if(!Number.isSafeInteger(expectedCredits)||expectedCredits<1||session.credits!==expectedCredits)throw Error("AdMob reward credit configuration is invalid.");
+  if(Number(params.get("reward_amount"))!==expectedCredits)throw Error("Unexpected AdMob reward amount.");
   const transactionId=params.get("transaction_id");
-  if(!transactionId||! /^[a-f0-9]{32,128}$/i.test(transactionId))throw Error("Invalid AdMob transaction ID.");
-  return {userId:session.sub,transactionId,credits:Number(process.env.ADMOB_REWARD_CREDITS||"10"),verificationOnly:false};
+  if(!transactionId||transactionId.length>200||!/^[A-Za-z0-9._:-]+$/.test(transactionId))throw Error("Invalid AdMob transaction ID.");
+  return {userId:session.sub,transactionId,credits:expectedCredits,verificationOnly:false};
 }
 
 const sponsorSignatureValid=req=>{const secret=process.env.SPONSOR_REWARD_WEBHOOK_SECRET,signature=String(req.get("x-sponsor-signature")||"");if(!secret||!req.rawBody||!/^[a-f0-9]{64}$/i.test(signature))return false;const expected=crypto.createHmac("sha256",secret).update(req.rawBody).digest();const supplied=Buffer.from(signature,"hex");return supplied.length===expected.length&&crypto.timingSafeEqual(supplied,expected)};
@@ -89,9 +92,13 @@ app.post("/api/spotify-ads/campaigns",auth,async(req,res)=>{const p=z.object({na
 
 app.get("/api/rewards/admob-config",(req,res)=>res.json({androidAppId:process.env.ADMOB_ANDROID_APP_ID||null,androidRewardedAdUnitId:process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID||null,enabled:Boolean(process.env.ADMOB_ANDROID_APP_ID&&process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID)}));
 app.post("/api/rewards/admob-session",auth,async(req,res)=>{
-  if(!process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID)return res.status(503).json({error:"Android AdMob rewarded ad unit is not configured yet."});
-  const customData=jwt.sign({sub:req.uid,kind:"admob_reward"},process.env.JWT_SECRET,{expiresIn:"10m",issuer:"stream-engine-ai"});
-  res.json({customData,userId:req.uid,expiresInSeconds:600,rewardCredits:Number(process.env.ADMOB_REWARD_CREDITS||"10")});
+  const adUnit=process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID;
+  if(!adUnit)return res.status(503).json({error:"Android AdMob rewarded ad unit is not configured yet."});
+  if(!process.env.JWT_SECRET)return res.status(503).json({error:"Reward verification is not configured."});
+  const rewardCredits=Number(process.env.ADMOB_REWARD_CREDITS||"10");
+  if(!Number.isSafeInteger(rewardCredits)||rewardCredits<1||rewardCredits>1000)return res.status(503).json({error:"AdMob reward credit configuration must be an integer from 1 to 1000."});
+  const customData=jwt.sign({sub:req.uid,kind:"admob_reward",credits:rewardCredits,adUnit},process.env.JWT_SECRET,{expiresIn:"10m",issuer:"stream-engine-ai"});
+  res.json({customData,userId:req.uid,expiresInSeconds:600,rewardCredits});
 });
 app.get("/webhooks/admob/reward",async(req,res)=>{
   try{

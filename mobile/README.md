@@ -22,7 +22,7 @@ The Railway production environment needs:
 - `ADMOB_REWARD_AMOUNT=10` — must match the reward amount configured in AdMob
 - `ADMOB_REWARD_CREDITS=10` — internal campaign credits granted per verified reward
 
-The Android native build also requires `ADMOB_ANDROID_APP_ID` as an EAS build environment variable, because Google's App ID is embedded in the Android manifest at build time. Railway runtime variables are not automatically visible to the EAS build service. Do not substitute the rewarded ad unit ID for the App ID.
+The Android native build also requires `ADMOB_ANDROID_APP_ID`, because Google's App ID is embedded in the Android manifest at build time. The dynamic Expo config fetches this public App ID from the Railway configuration endpoint, so it can remain in Railway variables; do not substitute the rewarded ad unit ID for the App ID.
 
 Configure the AdMob Android rewarded ad unit's Server-side verification callback URL as:
 
@@ -32,7 +32,7 @@ Set the reward item to `campaign_credits` and amount to `10`, matching the Railw
 
 ## Build
 
-Link the Expo project to an EAS project, then set `ADMOB_ANDROID_APP_ID` in the EAS build environment and run:
+Link the Expo project to an EAS project. The Android App ID is read from Railway during config resolution. Run:
 
 ```bash
 npx eas-cli build --platform android --profile production

@@ -12,6 +12,9 @@ model User {
   email        String     @unique
   passwordHash String
   displayName  String?
+  loginCount   Int        @default(0)
+  lastLoginAt  DateTime?
+  promotionCampaigns PromotionCampaign[]
   createdAt    DateTime   @default(now())
   campaigns    Campaign[]
   growthExperiments GrowthExperiment[]
@@ -144,4 +147,26 @@ model SpotifyAdsConnection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model PromotionCampaign {
+  id String @id @default(cuid())
+  userId String
+  campaignType String
+  title String
+  songUrl String
+  trackId String
+  trackName String?
+  artistName String?
+  albumImageUrl String?
+  creditsRequested Int
+  status String @default("PENDING")
+  statusReason String?
+  spotifyCampaignId String?
+  metricsJson String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, status, createdAt])
 }

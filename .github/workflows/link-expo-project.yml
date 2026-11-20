@@ -37,27 +37,30 @@ jobs:
       - name: Install mobile dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Link or create EAS project
+      - name: Verify Expo authentication
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           if [ -z "$EXPO_TOKEN" ]; then
-            echo "::error::Missing EXPO_TOKEN repository secret. Add it under Settings > Secrets and variables > Actions."
+            echo "::error::Missing EXPO_TOKEN repository secret."
             exit 1
           fi
-          echo "Starting Expo EAS project linking (triggered after EXPO_TOKEN confirmation)."
-          npx --yes eas-cli@latest init --force --non-interactive
+          npx --yes eas-cli@latest whoami
 
-      - name: Verify project ID
+      - name: Verify resolved EAS project ID
         id: verify
         run: |
-          PROJECT_ID="$(node -p "require('./app.json').expo?.extra?.eas?.projectId || ''")"
-          if [ -z "$PROJECT_ID" ]; then
-            echo "::error::EAS did not write expo.extra.eas.projectId to mobile/app.json."
-            exit 1
-          fi
-          echo "project_id=$PROJECT_ID" >> "$GITHUB_OUTPUT"
-          echo "EAS project ID linked successfully: $PROJECT_ID"
+          node <<'NODE'
+          const { execFileSync } = require("node:child_process");
+          const config = JSON.parse(execFileSync("npx", ["expo", "config", "--json"], { encoding: "utf8" }));
+          const projectId = config.extra?.eas?.projectId || "";
+          if (!projectId) {
+            console.error("::error::Resolved Expo config has no extra.eas.projectId.");
+            process.exit(1);
+          }
+          console.log("EAS project ID verified:", projectId);
+          require("fs").appendFileSync(process.env.GITHUB_OUTPUT, `project_id=${projectId}\n`);
+          NODE
 
       - name: Commit project ID to main
         working-directory: .

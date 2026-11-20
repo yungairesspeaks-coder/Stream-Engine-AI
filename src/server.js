@@ -39,6 +39,45 @@ app.post("/api/growth/experiments",auth,async(req,res)=>{const p=z.object({chann
 app.post("/api/growth/plan",auth,async(req,res)=>{const p=z.object({artistUrl:z.string().url(),currentListeners:z.coerce.number().int().min(0).max(1000000000),targetListeners:z.coerce.number().int().min(1).max(1000000000),monthlyBudget:z.coerce.number().min(0).max(100000)}).safeParse(req.body);if(!p.success)return res.status(400).json({error:"Enter your artist URL, current monthly listeners, target and monthly budget."});if(!spotifyArtistId(p.data.artistUrl))return res.status(400).json({error:"Use a Spotify artist profile URL, not a track link."});const history=await db.growthExperiment.findMany({where:{userId:req.uid},take:100});const channels=["TikTok","Instagram Reels","YouTube Shorts","Playlist outreach","Creator collaboration","Live/community"];const baseline={TikTok:1.2,"Instagram Reels":1.05,"YouTube Shorts":1,"Playlist outreach":.85,"Creator collaboration":1.1,"Live/community":.9};const scored=channels.map(channel=>{const rows=history.filter(x=>x.channel===channel);const score=rows.length?rows.reduce((a,x)=>a+(x.newListeners*3+x.saves*1.5+x.clicks*.08)/(x.spend+1),0)/rows.length:baseline[channel];return {channel,score,samples:rows.length}});const total=scored.reduce((a,x)=>a+x.score,0)||1;const allocation=scored.map(x=>({channel:x.channel,percent:Math.round(x.score/total*100),monthlyBudget:Math.round(p.data.monthlyBudget*x.score/total*100)/100,learningSamples:x.samples})).sort((a,b)=>b.monthlyBudget-a.monthlyBudget);res.json({artistUrl:p.data.artistUrl,currentListeners:p.data.currentListeners,targetListeners:p.data.targetListeners,gap:Math.max(0,p.data.targetListeners-p.data.currentListeners),monthlyBudget:p.data.monthlyBudget,allocation,formula:"Channel score = (3 × attributed new listeners + 1.5 × saves + 0.08 × qualified clicks) ÷ (campaign spend + 1). Budget share follows each channel's average score; channels without results start with baseline weights.",actions:["Publish 3–5 original short-form clips weekly with a direct link to the official track.","Work with audience-matched creators and disclose paid partnerships.","Pitch independent playlists directly; avoid guaranteed-placement offers.","Send interested listeners to the artist or release page and measure voluntary saves.","Review weekly and shift next month's budget toward channels producing attributable real listeners."],caveat:"This is a planning and budget-allocation algorithm, not a listener guarantee. It learns only from campaign outcomes you enter; Spotify API content is not used to train an AI model. Monthly-listener counts must be entered from Spotify for Artists."})});
 
 
+async function verifyAdMobSsv(req){
+  const raw=String(req.originalUrl||"");
+  const query=raw.split("?")[1]||"";
+  const marker="&signature=";
+  const at=query.lastIndexOf(marker);
+  if(at<0)throw Error("Missing AdMob signature.");
+  const signed=query.slice(0,at);
+  const tail=query.slice(at+marker.length);
+  const match=tail.match(/^([^&]+)&key_id=(\\d+)$/);
+  if(!match)throw Error("Malformed AdMob signature parameters.");
+  const signature=Buffer.from(match[1].replace(/-/g,"+").replace(/_/g,"/"),"base64");
+  const keyId=Number(match[2]);
+  const now=Date.now();
+  if(!global.admobKeys||global.admobKeys.expiresAt<now){
+    const response=await fetch("https://www.gstatic.com/admob/reward/verifier-keys.json");
+    if(!response.ok)throw Error("Could not refresh AdMob verification keys.");
+    const data=await response.json();
+    global.admobKeys={keys:new Map((data.keys||[]).map(k=>[Number(k.keyId),k.pem])),expiresAt:now+23*60*60*1000};
+  }
+  const pem=global.admobKeys.keys.get(keyId);
+  if(!pem)throw Error("Unknown AdMob signing key.");
+  if(!crypto.verify("sha256",Buffer.from(signed,"utf8"),{key:pem,dsaEncoding:"der"},signature))throw Error("Invalid AdMob signature.");
+  const params=new URLSearchParams(query);
+  const timestamp=Number(params.get("timestamp"));
+  if(!Number.isFinite(timestamp)||Math.abs(now-timestamp)>24*60*60*1000)throw Error("AdMob callback timestamp outside allowed window.");
+  const token=params.get("custom_data");
+  if(!token)throw Error("Missing reward session token.");
+  const session=jwt.verify(token,process.env.JWT_SECRET);
+  if(session.kind!=="admob_reward"||!session.sub)throw Error("Invalid reward session.");
+  const expectedUnit=process.env.ADMOB_REWARDED_AD_UNIT_ID;
+  if(!expectedUnit||params.get("ad_unit")!==expectedUnit)throw Error("Unexpected AdMob ad unit.");
+  if(params.get("reward_item")!==(process.env.ADMOB_REWARD_ITEM||"campaign_credits"))throw Error("Unexpected AdMob reward item.");
+  const expectedAmount=Number(process.env.ADMOB_REWARD_AMOUNT||"10");
+  if(Number(params.get("reward_amount"))!==expectedAmount)throw Error("Unexpected AdMob reward amount.");
+  const transactionId=params.get("transaction_id");
+  if(!transactionId||! /^[a-f0-9]{32,128}$/i.test(transactionId))throw Error("Invalid AdMob transaction ID.");
+  return {userId:session.sub,transactionId,credits:Number(process.env.ADMOB_REWARD_CREDITS||"10")};
+}
+
 const sponsorSignatureValid=req=>{const secret=process.env.SPONSOR_REWARD_WEBHOOK_SECRET,signature=String(req.get("x-sponsor-signature")||"");if(!secret||!req.rawBody||!/^[a-f0-9]{64}$/i.test(signature))return false;const expected=crypto.createHmac("sha256",secret).update(req.rawBody).digest();const supplied=Buffer.from(signature,"hex");return supplied.length===expected.length&&crypto.timingSafeEqual(supplied,expected)};
 
 function spotifyAdsConfig(){const clientId=process.env.SPOTIFY_ADS_CLIENT_ID,clientSecret=process.env.SPOTIFY_ADS_CLIENT_SECRET,redirectUri=process.env.SPOTIFY_ADS_REDIRECT_URI||"https://yung-aires-stream-engine-ai-production.up.railway.app/auth/spotify-ads/callback";if(!clientId||!clientSecret)throw Error("Add SPOTIFY_ADS_CLIENT_ID and SPOTIFY_ADS_CLIENT_SECRET in Railway. Register the Spotify Ads API callback URL.");return {clientId,clientSecret,redirectUri}}
@@ -54,6 +93,22 @@ app.post("/api/spotify-ads/select-account",auth,async(req,res)=>{const p=z.objec
 app.get("/api/spotify-ads/campaigns",auth,async(req,res)=>{try{const c=await db.spotifyAdsConnection.findUnique({where:{userId:req.uid}});if(!c?.selectedAdAccountId)return res.status(400).json({error:"Connect Spotify Ads and select an ad account first."});const result=await spotifyAdsRequest(req.uid,"/ad_accounts/"+encodeURIComponent(c.selectedAdAccountId)+"/campaigns");res.json(result.items||result.data||result)}catch(e){res.status(e.status||502).json({error:e.message})}});
 app.post("/api/spotify-ads/campaigns",auth,async(req,res)=>{const p=z.object({name:z.string().trim().min(3).max(120),confirmCreateContainer:z.literal(true)}).safeParse(req.body);if(!p.success)return res.status(400).json({error:"Enter a campaign name and confirm creation."});try{const c=await db.spotifyAdsConnection.findUnique({where:{userId:req.uid}});if(!c?.selectedAdAccountId)return res.status(400).json({error:"Select your Spotify Ads Manager account first."});const result=await spotifyAdsRequest(req.uid,"/ad_accounts/"+encodeURIComponent(c.selectedAdAccountId)+"/campaigns",{method:"POST",headers:{"Content-Type":"application/json","Idempotency-Key":crypto.randomUUID()},body:JSON.stringify({name:p.data.name,delivery_goal_group:"AWARENESS"})});res.status(201).json({ok:true,campaign:result,note:"Campaign container created in Spotify Ads Manager. It does not run or spend money until you configure and publish its ad sets and ads in Ads Manager."})}catch(e){res.status(e.status||502).json({error:e.message,detail:e.detail})}});
 
+app.post("/api/rewards/admob-session",auth,async(req,res)=>{
+  if(!process.env.ADMOB_REWARDED_AD_UNIT_ID)return res.status(503).json({error:"AdMob rewarded ad unit is not configured yet."});
+  const customData=jwt.sign({sub:req.uid,kind:"admob_reward"},process.env.JWT_SECRET,{expiresIn:"10m",issuer:"stream-engine-ai"});
+  res.json({customData,expiresInSeconds:600,rewardCredits:Number(process.env.ADMOB_REWARD_CREDITS||"10")});
+});
+app.get("/webhooks/admob/reward",async(req,res)=>{
+  try{
+    const reward=await verifyAdMobSsv(req);
+    await db.sponsorRewardLedger.create({data:{userId:reward.userId,type:"ADMOB_REWARDED_VIEW",deltaCredits:reward.credits,providerEventId:"admob:"+reward.transactionId,note:"Google AdMob server-verified rewarded ad completion"}});
+    return res.status(200).send("OK");
+  }catch(e){
+    if(e.code==="P2002")return res.status(200).send("OK");
+    console.error("AdMob SSV rejected:",e.message);
+    return res.status(400).send("Invalid reward callback");
+  }
+});
 app.get("/api/rewards/wallet",auth,async(req,res)=>{const [ledger,credits]=await Promise.all([db.sponsorRewardLedger.findMany({where:{userId:req.uid},orderBy:{createdAt:"desc"},take:30,include:{sponsorAd:{select:{title:true,sponsorName:true}}}}),db.sponsorCampaignCredit.aggregate({where:{userId:req.uid,status:"AVAILABLE"},_sum:{credits:true}})]);const earned=await db.sponsorRewardLedger.aggregate({where:{userId:req.uid},_sum:{deltaCredits:true}});res.json({balanceCredits:earned._sum.deltaCredits||0,availableCampaignCredits:credits._sum.credits||0,history:ledger})});
 app.get("/api/rewards/ads",auth,async(req,res)=>{const ads=await db.sponsorAd.findMany({where:{active:true,startsAt:{lte:new Date()},OR:[{endsAt:null},{endsAt:{gt:new Date()}}]},orderBy:{createdAt:"desc"},select:{id:true,title:true,sponsorName:true,videoUrl:true,rewardCredits:true}});res.json(ads)});
 app.post("/api/admin/sponsor-ads",async(req,res)=>{const key=process.env.SPONSOR_ADMIN_API_KEY;if(!key||req.get("authorization")!=="Bearer "+key)return res.status(401).json({error:"Admin authorization required."});const p=z.object({title:z.string().min(3).max(120),sponsorName:z.string().min(2).max(100),videoUrl:z.string().url(),rewardCredits:z.number().int().min(1).max(10000),endsAt:z.string().datetime().optional()}).safeParse(req.body);if(!p.success)return res.status(400).json({error:"Provide a title, sponsor, HTTPS video URL, and reward amount."});if(new URL(p.data.videoUrl).protocol!=="https:")return res.status(400).json({error:"Sponsor video URL must use HTTPS."});const ad=await db.sponsorAd.create({data:{...p.data,endsAt:p.data.endsAt?new Date(p.data.endsAt):null}});res.status(201).json({ok:true,ad})});

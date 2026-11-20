@@ -97,7 +97,7 @@ app.post("/api/spotify-ads/campaigns",auth,async(req,res)=>{const p=z.object({na
 app.get("/api/rewards/admob-config",(req,res)=>res.json({androidAppId:process.env.ADMOB_ANDROID_APP_ID||null,androidRewardedAdUnitId:process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID||null,enabled:Boolean(process.env.ADMOB_ANDROID_APP_ID&&process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID)}));
 app.post("/api/rewards/admob-session",auth,async(req,res)=>{
   if(!process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID)return res.status(503).json({error:"Android AdMob rewarded ad unit is not configured yet."});
-  const customData=jwt.sign({sub:req.uid,kind:"admob_reward"},process.env.JWT_SECRET,{expiresIn:"10m",issuer:"stream-engine-ai"});
+  const customData=jwt.sign({sub:req.uid,kind:"admob_reward"},process.env.JWT_SECRET,{expiresIn:"24h",issuer:"stream-engine-ai"});
   res.json({customData,userId:req.uid,expiresInSeconds:600,rewardCredits:Number(process.env.ADMOB_REWARD_CREDITS||"10")});
 });
 app.get("/webhooks/admob/reward",async(req,res)=>{

@@ -1,0 +1,11 @@
+"use strict";
+const test=require("node:test");
+const assert=require("node:assert/strict");
+const {MIN_CAMPAIGN_CREDITS,classifyCampaignFunding,canTransitionCampaign}=require("../src/promotion");
+test("promotion minimum is 350 credits",()=>assert.equal(MIN_CAMPAIGN_CREDITS,350));
+test("funded campaign enters pending review",()=>assert.equal(classifyCampaignFunding(500,350),"PENDING"));
+test("insufficient funds does not launch",()=>assert.equal(classifyCampaignFunding(349,350),"INSUFFICIENT_FUNDS"));
+test("amount below minimum is rejected",()=>assert.equal(classifyCampaignFunding(1000,200),"INSUFFICIENT_FUNDS"));
+test("pending campaign can activate or cancel",()=>{assert.equal(canTransitionCampaign("PENDING","ACTIVE"),true);assert.equal(canTransitionCampaign("PENDING","CANCELLED"),true)});
+test("completed campaigns are terminal",()=>{assert.equal(canTransitionCampaign("COMPLETED","ACTIVE"),false);assert.equal(canTransitionCampaign("COMPLETED","PENDING"),false)});
+test("insufficient funds can be retried after top-up",()=>assert.equal(canTransitionCampaign("INSUFFICIENT_FUNDS","PENDING"),true));

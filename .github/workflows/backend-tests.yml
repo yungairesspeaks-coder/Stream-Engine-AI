@@ -15,5 +15,10 @@ jobs:
         with:
           node-version: 20
       - run: npm install
+      - run: npx prisma validate
       - run: npx prisma generate
+      - run: node --check src/server.js
+      - run: node --check src/ai.js
+      - run: node --check src/promotion.js
+      - run: node --check public/app.js
       - run: npm test

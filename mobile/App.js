@@ -1,11 +1,9 @@
 import React, {useEffect, useRef, useState} from "react";
 import {ActivityIndicator, Alert, BackHandler, SafeAreaView, StatusBar, Text, View} from "react-native";
-import Constants from "expo-constants";
 import {WebView} from "react-native-webview";
 import mobileAds, {AdEventType, RewardedAd, RewardedAdEventType, TestIds} from "react-native-google-mobile-ads";
 
 const SITE_URL = "https://yung-aires-stream-engine-ai-production.up.railway.app/";
-const AD_UNIT_ID = __DEV__ ? TestIds.REWARDED : Constants.expoConfig?.extra?.androidRewardedAdUnitId;
 
 export default function App() {
   const web = useRef(null);
@@ -30,9 +28,17 @@ export default function App() {
     if (!data.customData || !data.userId || String(data.customData).length > 1500) {
       setMessage("The reward session could not be validated. Sign in again."); return;
     }
-    if (!AD_UNIT_ID) { setMessage("Production rewarded-ad unit is missing. Configure ADMOB_ANDROID_REWARDED_AD_UNIT_ID in the Android EAS build environment."); return; }
+    let adUnitId = TestIds.REWARDED;
+    if (!__DEV__) {
+      try {
+        const response = await fetch(SITE_URL + "api/rewards/admob-config");
+        const config = await response.json();
+        if (!response.ok || !config.enabled || !config.androidRewardedAdUnitId) throw new Error("Production AdMob rewarded unit is not configured in Railway.");
+        adUnitId = config.androidRewardedAdUnitId;
+      } catch (error) { setMessage(error.message || "AdMob configuration unavailable."); web.current?.injectJavaScript("window.location.reload(); true;"); return; }
+    }
     setMessage("Loading a rewarded ad…");
-    const ad = RewardedAd.createForAdRequest(AD_UNIT_ID, {
+    const ad = RewardedAd.createForAdRequest(adUnitId, {
       requestNonPersonalizedAdsOnly: true,
       serverSideVerificationOptions: {userId: String(data.userId), customData: String(data.customData)}
     });
@@ -62,6 +68,7 @@ export default function App() {
     unsubError = ad.addAdEventListener(AdEventType.ERROR, (error) => {
       setMessage("Ad unavailable: " + (error?.message || "Please try again later."));
       cleanup();
+      web.current?.injectJavaScript("window.location.reload(); true;");
     });
     ad.load();
   };

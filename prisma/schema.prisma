@@ -14,12 +14,6 @@ model User {
   displayName  String?
   createdAt    DateTime   @default(now())
   campaigns    Campaign[]
-  tiktokAccessTokenEnc String?
-  tiktokRefreshTokenEnc String?
-  tiktokTokenExpiresAt DateTime?
-  tiktokOpenId String?
-  tiktokScopes String?
-  tiktokUsername String?
   growthExperiments GrowthExperiment[]
   playlistCandidates PlaylistCandidate[]
   rewardLedger SponsorRewardLedger[]
@@ -61,7 +55,7 @@ model ScheduledPost {
   campaignId  String
   scheduledAt DateTime
   caption     String
-  status      String   @default("DRAFT_AWAITING_TIKTOK_AUTH")
+  status      String   @default("PROMO_DRAFT_READY")
   createdAt   DateTime @default(now())
   campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   @@index([scheduledAt, status])

@@ -21,12 +21,12 @@ $("#playlistCandidateForm").addEventListener("submit",async e=>{e.preventDefault
 
 async function requestAdMobReward(){
   const button=$("#watchAdMobReward");if(!button)return;
-  if(!window.ReactNativeWebView){showMessage("Rewarded ads are available in the Stream Engine AI Android/iOS app.",true);return}
+  if(!window.ReactNativeWebView){showMessage("Rewarded ads are available in the Stream Engine AI Android app.",true);return}
   button.disabled=true;button.textContent="Preparing rewarded ad…";
   try{
     const session=await api("/api/rewards/admob-session");
     window.ReactNativeWebView.postMessage(JSON.stringify({type:"SHOW_ADMOB_REWARDED",customData:session.customData,userId:session.userId,rewardCredits:session.rewardCredits}));
-    button.textContent="Ad request sent · waiting for completion";
+    button.textContent="Ad request sent · waiting for completion";window.setTimeout(()=>{if(button.disabled&&button.textContent==="Ad request sent · waiting for completion"){button.disabled=false;button.textContent="Watch rewarded ad";showMessage("No ad response received. Please try again.",true)}},45000);
   }catch(e){showMessage(e.message,true);button.disabled=false;button.textContent="Watch rewarded ad"}
 }
 async function loadSponsorRewards(){try{const [wallet,ads]=await Promise.all([api("/api/rewards/wallet"),api("/api/rewards/ads")]);$("#rewardBalance").textContent=wallet.balanceCredits.toLocaleString();$("#reservedCredits").textContent=wallet.availableCampaignCredits.toLocaleString();$("#sponsorAds").innerHTML=ads.length?ads.map(a=>'<article class="sponsor-ad"><div><b>'+esc(a.title)+'</b><span>Sponsored by '+esc(a.sponsorName)+' · Earn '+a.rewardCredits+' credits</span></div><video controls playsinline preload="none" src="'+esc(a.videoUrl)+'"></video><p class="fine">Play the approved sponsor video. Credits appear after the sponsor provider verifies completion.</p></article>').join(""):'<p class="muted">No sponsor videos are active right now. Check back when a sponsor campaign is available.</p>';$("#rewardHistory").innerHTML=wallet.history.length?'<h3>Wallet activity</h3>'+wallet.history.map(x=>'<p><b>'+(x.deltaCredits>0?'+':'')+x.deltaCredits+' credits</b> · '+esc(x.note||x.type.replaceAll("_"," "))+' · '+new Date(x.createdAt).toLocaleString()+'</p>').join(""):'<p class="muted">Your verified reward and redemption history will appear here.</p>'}catch(e){$("#sponsorAds").textContent=e.message}}

@@ -54,18 +54,22 @@ async function verifyAdMobSsv(req){
   let timestamp=Number(params.get("timestamp"));
   if(timestamp>1e14)timestamp/=1000; // tolerate Google's microsecond-formatted examples as well as millisecond callbacks
   if(!Number.isFinite(timestamp)||Math.abs(now-timestamp)>24*60*60*1000)throw Error("AdMob callback timestamp outside allowed window.");
+  // AdMob console URL verification may send a signed ping without an app JWT.
+  // A valid Google signature is required, but verification pings never earn credits.
   const token=params.get("custom_data");
-  if(!token)throw Error("Missing reward session token.");
-  const session=jwt.verify(token,process.env.JWT_SECRET,{issuer:"stream-engine-ai"});
-  if(session.kind!=="admob_reward"||!session.sub||params.get("user_id")!==session.sub)throw Error("Invalid reward session user.");
+  if(!token)return {verificationOnly:true};
+  let session;
+  try{session=jwt.verify(token,process.env.JWT_SECRET,{issuer:"stream-engine-ai"})}
+  catch{return {verificationOnly:true}}
+  if(session.kind!=="admob_reward"||!session.sub||params.get("user_id")!==session.sub)return {verificationOnly:true};
   const expectedUnits=[process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID].filter(Boolean);
   if(!expectedUnits.includes(params.get("ad_unit")))throw Error("Unexpected AdMob ad unit.");
   if(params.get("reward_item")!==(process.env.ADMOB_REWARD_ITEM||"campaign_credits"))throw Error("Unexpected AdMob reward item.");
   const expectedAmount=Number(process.env.ADMOB_REWARD_AMOUNT||"10");
   if(Number(params.get("reward_amount"))!==expectedAmount)throw Error("Unexpected AdMob reward amount.");
   const transactionId=params.get("transaction_id");
-  if(!transactionId||! /^[a-f0-9-]{32,128}$/i.test(transactionId))throw Error("Invalid AdMob transaction ID.");
-  return {userId:session.sub,transactionId,credits:Number(process.env.ADMOB_REWARD_CREDITS||"10")};
+  if(!transactionId||! /^[a-f0-9]{32,128}$/i.test(transactionId))throw Error("Invalid AdMob transaction ID.");
+  return {userId:session.sub,transactionId,credits:Number(process.env.ADMOB_REWARD_CREDITS||"10"),verificationOnly:false};
 }
 
 const sponsorSignatureValid=req=>{const secret=process.env.SPONSOR_REWARD_WEBHOOK_SECRET,signature=String(req.get("x-sponsor-signature")||"");if(!secret||!req.rawBody||!/^[a-f0-9]{64}$/i.test(signature))return false;const expected=crypto.createHmac("sha256",secret).update(req.rawBody).digest();const supplied=Buffer.from(signature,"hex");return supplied.length===expected.length&&crypto.timingSafeEqual(supplied,expected)};
@@ -92,6 +96,10 @@ app.post("/api/rewards/admob-session",auth,async(req,res)=>{
 app.get("/webhooks/admob/reward",async(req,res)=>{
   try{
     const reward=await verifyAdMobSsv(req);
+    if(reward.verificationOnly){
+      console.log("AdMob SSV signature verified; verification-only callback received (no wallet credit).");
+      return res.status(200).send("OK");
+    }
     await db.sponsorRewardLedger.create({data:{userId:reward.userId,type:"ADMOB_REWARDED_VIEW",deltaCredits:reward.credits,providerEventId:"admob:"+reward.transactionId,note:"Google AdMob server-verified rewarded ad completion"}});
     return res.status(200).send("OK");
   }catch(e){

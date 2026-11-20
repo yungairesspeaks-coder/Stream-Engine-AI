@@ -62,7 +62,8 @@ async function verifyAdMobSsv(req){
   if(!pem)throw Error("Unknown AdMob signing key.");
   if(!crypto.verify("sha256",Buffer.from(signed,"utf8"),{key:pem,dsaEncoding:"der"},signature))throw Error("Invalid AdMob signature.");
   const params=new URLSearchParams(query);
-  const timestamp=Number(params.get("timestamp"));
+  let timestamp=Number(params.get("timestamp"));
+  if(timestamp>1e14)timestamp/=1000; // tolerate Google's microsecond-formatted examples as well as millisecond callbacks
   if(!Number.isFinite(timestamp)||Math.abs(now-timestamp)>24*60*60*1000)throw Error("AdMob callback timestamp outside allowed window.");
   const token=params.get("custom_data");
   if(!token)throw Error("Missing reward session token.");

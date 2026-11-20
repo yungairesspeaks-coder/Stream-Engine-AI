@@ -1,0 +1,68 @@
+name: Link Expo project
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/link-expo-project.yml"
+      - "mobile/app.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: link-expo-project
+  cancel-in-progress: false
+
+jobs:
+  link-expo:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Link or create EAS project
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Missing EXPO_TOKEN repository secret. Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          npx --yes eas-cli@latest init --force --non-interactive
+
+      - name: Verify project ID
+        id: verify
+        run: |
+          PROJECT_ID="$(node -p "require('./app.json').expo?.extra?.eas?.projectId || ''")"
+          if [ -z "$PROJECT_ID" ]; then
+            echo "::error::EAS did not write expo.extra.eas.projectId to mobile/app.json."
+            exit 1
+          fi
+          echo "project_id=$PROJECT_ID" >> "$GITHUB_OUTPUT"
+          echo "EAS project ID linked successfully: $PROJECT_ID"
+
+      - name: Commit project ID to main
+        working-directory: .
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mobile/app.json
+          if git diff --cached --quiet; then
+            echo "mobile/app.json already contains the linked EAS project ID."
+          else
+            git commit -m "Link Expo project"
+            git push origin HEAD:main
+          fi

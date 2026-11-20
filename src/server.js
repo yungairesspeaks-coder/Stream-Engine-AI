@@ -36,7 +36,7 @@ async function verifyAdMobSsv(req){
   if(at<0)throw Error("Missing AdMob signature.");
   const signed=query.slice(0,at);
   const tail=query.slice(at+marker.length);
-  const match=tail.match(/^([^&]+)&key_id=(\\d+)$/);
+  const match=tail.match(/^([^&]+)&key_id=(\d+)$/);
   if(!match)throw Error("Malformed AdMob signature parameters.");
   const signature=Buffer.from(match[1].replace(/-/g,"+").replace(/_/g,"/"),"base64");
   const keyId=Number(match[2]);
@@ -56,7 +56,7 @@ async function verifyAdMobSsv(req){
   if(!Number.isFinite(timestamp)||Math.abs(now-timestamp)>24*60*60*1000)throw Error("AdMob callback timestamp outside allowed window.");
   const token=params.get("custom_data");
   if(!token)throw Error("Missing reward session token.");
-  const session=jwt.verify(token,process.env.JWT_SECRET);
+  const session=jwt.verify(token,process.env.JWT_SECRET,{issuer:"stream-engine-ai"});
   if(session.kind!=="admob_reward"||!session.sub||params.get("user_id")!==session.sub)throw Error("Invalid reward session user.");
   const expectedUnits=[process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID].filter(Boolean);
   if(!expectedUnits.includes(params.get("ad_unit")))throw Error("Unexpected AdMob ad unit.");
@@ -64,7 +64,7 @@ async function verifyAdMobSsv(req){
   const expectedAmount=Number(process.env.ADMOB_REWARD_AMOUNT||"10");
   if(Number(params.get("reward_amount"))!==expectedAmount)throw Error("Unexpected AdMob reward amount.");
   const transactionId=params.get("transaction_id");
-  if(!transactionId||! /^[a-f0-9]{32,128}$/i.test(transactionId))throw Error("Invalid AdMob transaction ID.");
+  if(!transactionId||! /^[a-f0-9-]{32,128}$/i.test(transactionId))throw Error("Invalid AdMob transaction ID.");
   return {userId:session.sub,transactionId,credits:Number(process.env.ADMOB_REWARD_CREDITS||"10")};
 }
 
@@ -86,7 +86,7 @@ app.post("/api/spotify-ads/campaigns",auth,async(req,res)=>{const p=z.object({na
 app.get("/api/rewards/admob-config",(req,res)=>res.json({androidAppId:process.env.ADMOB_ANDROID_APP_ID||null,androidRewardedAdUnitId:process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID||null,enabled:Boolean(process.env.ADMOB_ANDROID_APP_ID&&process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID)}));
 app.post("/api/rewards/admob-session",auth,async(req,res)=>{
   if(!process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID)return res.status(503).json({error:"Android AdMob rewarded ad unit is not configured yet."});
-  const customData=jwt.sign({sub:req.uid,kind:"admob_reward"},process.env.JWT_SECRET,{expiresIn:"24h",issuer:"stream-engine-ai"});
+  const customData=jwt.sign({sub:req.uid,kind:"admob_reward"},process.env.JWT_SECRET,{expiresIn:"10m",issuer:"stream-engine-ai"});
   res.json({customData,userId:req.uid,expiresInSeconds:600,rewardCredits:Number(process.env.ADMOB_REWARD_CREDITS||"10")});
 });
 app.get("/webhooks/admob/reward",async(req,res)=>{

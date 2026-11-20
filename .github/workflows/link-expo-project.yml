@@ -41,6 +41,7 @@ jobs:
             echo "::error::Missing EXPO_TOKEN repository secret. Add it under Settings > Secrets and variables > Actions."
             exit 1
           fi
+          echo "Starting Expo EAS project linking."
           npx --yes eas-cli@latest init --force --non-interactive
 
       - name: Verify project ID

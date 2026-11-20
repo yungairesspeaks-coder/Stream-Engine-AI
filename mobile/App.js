@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {ActivityIndicator, Alert, BackHandler, SafeAreaView, StatusBar, Text, View} from "react-native";
+import {ActivityIndicator, Alert, BackHandler, Linking, SafeAreaView, StatusBar, Text, View} from "react-native";
 import {WebView} from "react-native-webview";
 import mobileAds, {AdEventType, RewardedAd, RewardedAdEventType, TestIds} from "react-native-google-mobile-ads";
 
@@ -9,10 +9,24 @@ const USE_TEST_ADS = __DEV__ || process.env.EXPO_PUBLIC_ADMOB_TEST_ADS === "true
 export default function App() {
   const web = useRef(null);
   const adRef = useRef(null);
+  const webLoaded = useRef(false);
+  const pendingSpotifyReturn = useRef(false);
   const [ready, setReady] = useState(false);
   const [message, setMessage] = useState("Sign in to earn verified campaign credits.");
 
   useEffect(() => { mobileAds().initialize().then(() => setReady(true)).catch(() => setMessage("Google Mobile Ads could not initialize.")); }, []);
+  useEffect(() => {
+    const handleUrl = (url) => {
+      if (!url || !url.startsWith("streamengineai://spotify-ads-connected")) return;
+      const connected = url.includes("status=connected");
+      setMessage(connected ? "Spotify Ads connected. Refreshing your workspace…" : "Spotify Ads connection failed. Check your Spotify Ads app setup and try again.");
+      if (webLoaded.current) web.current?.injectJavaScript("window.location.replace('/?spotify_ads="+(connected?"connected":"error")+"'); true;");
+      else pendingSpotifyReturn.current = true;
+    };
+    const sub = Linking.addEventListener("url", ({url}) => handleUrl(url));
+    Linking.getInitialURL().then(handleUrl).catch(() => {});
+    return () => sub.remove();
+  }, []);
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
       if (web.current) { web.current.goBack(); return true; }
@@ -86,7 +100,7 @@ export default function App() {
         <Text accessibilityLiveRegion="polite" style={{color:"#a5b4fc",fontSize:12,marginTop:3}}>{message}</Text>
       </View>
       {!ready && <View style={{padding:6}}><ActivityIndicator color="#a5b4fc" /></View>}
-      <WebView ref={web} source={{uri:SITE_URL}} onLoadEnd={() => web.current?.injectJavaScript("window.STREAM_ENGINE_ADMOB_TEST_MODE = "+(USE_TEST_ADS?"true":"false")+"; true;")} onMessage={onWebMessage} javaScriptEnabled domStorageEnabled sharedCookiesEnabled thirdPartyCookiesEnabled allowsBackForwardNavigationGestures setSupportMultipleWindows={false} originWhitelist={["https://*"]} onError={() => Alert.alert("Connection issue","Could not load Stream Engine AI. Check your internet connection.")} style={{flex:1,backgroundColor:"#090b14"}} />
+      <WebView ref={web} source={{uri:SITE_URL}} onShouldStartLoadWithRequest={(request) => { if (request.url.startsWith("https://accounts.spotify.com/authorize")) { Linking.openURL(request.url).catch(() => setMessage("Could not open Spotify sign-in in your browser.")); return false; } return true; }} onLoadEnd={() => { webLoaded.current = true; web.current?.injectJavaScript("window.STREAM_ENGINE_ADMOB_TEST_MODE = "+(USE_TEST_ADS?"true":"false")+"; true;"); if (pendingSpotifyReturn.current) { pendingSpotifyReturn.current = false; web.current?.injectJavaScript("window.location.replace('/?spotify_ads=connected'); true;"); } }} onMessage={onWebMessage} javaScriptEnabled domStorageEnabled sharedCookiesEnabled thirdPartyCookiesEnabled allowsBackForwardNavigationGestures setSupportMultipleWindows={false} originWhitelist={["https://*"]} onError={() => Alert.alert("Connection issue","Could not load Stream Engine AI. Check your internet connection.")} style={{flex:1,backgroundColor:"#090b14"}} />
     </SafeAreaView>
   );
 }

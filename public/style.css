@@ -1,13 +1,96 @@
-*{box-sizing:border-box}body{margin:0;background:#090b14;color:#f5f5fb;font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1120px;margin:auto;padding:28px 20px}.hero,.panel{background:#171b2b;border:1px solid #30364d;border-radius:18px;padding:26px;margin-bottom:18px}.hero{background:radial-gradient(ellipse at top right,#30245c 0,transparent 48%),#171b2b;padding:34px}.eyebrow{color:#b9a5ff;font-size:12px;font-weight:800;letter-spacing:.16em;margin:0 0 8px}h1{font-size:clamp(34px,7vw,64px);line-height:1.05;margin:6px 0 14px;letter-spacing:-.04em}h1 span{color:#a78bfa}h2{font-size:25px;margin:0 0 18px}h3{margin:8px 0}.status,.muted,.fine,footer{color:#aab0c3}.auth-grid,.studio-grid,.features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.features{grid-template-columns:repeat(3,minmax(0,1fr))}.features>div,.preview{background:#0f1322;border:1px solid #30364d;border-radius:12px;padding:18px}.studio-grid{grid-template-columns:1.1fr .9fr}label{display:block;font-size:14px;color:#cbd0e2;margin:12px 0}input,textarea,select,button{display:block;width:100%;padding:13px;margin:7px 0;border-radius:9px;border:1px solid #444b66;background:#0c1020;color:white;font:inherit}button{background:#8059e8;border:0;font-weight:750;cursor:pointer;margin-top:14px}button:hover{filter:brightness(1.12)}button:disabled{opacity:.55;cursor:wait}button.secondary{background:#30364d}.compact{width:auto;padding:9px 15px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:16px}textarea{min-height:96px;resize:vertical}.embed-placeholder{border:1px dashed #555d78;border-radius:10px;padding:28px 14px;text-align:center;color:#aab0c3;min-height:150px}iframe{border-radius:12px}.fine{font-size:12px}.hidden{display:none!important}.success{color:#a7f3d0;margin:14px 0}.error{color:#fca5a5;margin:14px 0}.campaign{border-top:1px solid #343a50;padding:14px 0}.idea{padding:14px;margin:10px 0;background:#0f1322;border-radius:10px}.idea p{margin:7px 0}.idea small{color:#b9a5ff}.action-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.action-row button{width:auto;padding:9px 12px;margin:6px 0}.video-state{font-size:13px;color:#b9a5ff;text-transform:capitalize}.download{display:inline-block;padding:8px 12px;border-radius:8px;background:#4d397d;color:white;margin:6px 0;text-decoration:none}.schedule-list{color:#aab0c3;font-size:13px}a{color:#c4b5fd}footer{font-size:12px;padding:12px 4px}@media(max-width:760px){main{padding:14px}.auth-grid,.studio-grid,.features{grid-template-columns:1fr}.hero,.panel{padding:20px}.section-head{align-items:flex-start}}
-.tiktok-panel{margin:22px 0 4px;padding:18px;border:1px solid #6853a8;border-radius:14px;background:linear-gradient(135deg,#211a38,#101525)}.tiktok-panel h3{font-size:20px;margin:0 0 6px}.tiktok-panel .button-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border-radius:9px;background:#8059e8;color:#fff;text-decoration:none;font-weight:750}.tiktok-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:end;margin-top:16px}.tiktok-tools button{max-width:220px}.tiktok-tools #tiktokTestResult{padding:12px;border:1px solid #39334f;border-radius:9px;background:#0d1120;min-height:72px}.tiktok-panel .fine{margin:14px 0 0}@media(max-width:760px){.tiktok-tools{grid-template-columns:1fr}.tiktok-tools button{max-width:none}}
-
-.growth-panel{border-color:#62529b;background:linear-gradient(145deg,#1c1930,#171b2b)}.growth-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}.growth-grid form,.artist-card,.experiment-panel{padding:16px;background:#0f1322;border:1px solid #39334f;border-radius:12px}.artist-image{width:100%;max-height:160px;object-fit:cover;border-radius:10px}.experiment-panel{margin-top:20px}.experiment-panel form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.experiment-panel button{grid-column:1/-1}.allocation-list{display:grid;gap:12px;margin:16px 0}.allocation-row{padding:12px;background:#0f1322;border-radius:9px}.allocation-row span{display:block;color:#aab0c3;font-size:13px}.bar{height:7px;background:#30364d;border-radius:10px;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;background:#a78bfa;border-radius:10px}.growth-history{margin-top:14px;color:#cbd0e2;font-size:13px}.growth-history p{padding:8px;border-bottom:1px solid #30364d}@media(max-width:760px){.growth-grid,.experiment-panel form{grid-template-columns:1fr}}
-
-.playlist-panel{border-color:#4d6798;background:linear-gradient(145deg,#172337,#171b2b)}.playlist-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}.playlist-layout form,.playlist-ranking,.playlist-queue{padding:16px;background:#0f1322;border:1px solid #35435f;border-radius:12px}.playlist-ranking{min-height:220px}.playlist-ranking h3{margin-top:0}.target-score{padding:10px 0;border-bottom:1px solid #303b50}.target-score span,.playlist-queue-item span,.playlist-queue-item small{display:block;color:#b7c1d5;font-size:13px}.target-score p{font-size:13px;color:#aeb8cc;margin:4px 0}.pitch-draft{white-space:pre-wrap;overflow-wrap:anywhere;background:#090d18;padding:12px;border-radius:8px;color:#e4e9f5}.playlist-queue{margin-top:18px}.playlist-queue-item{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #303b50}.playlist-queue-item button{margin:0}@media(max-width:760px){.playlist-layout{grid-template-columns:1fr}.playlist-queue-item{align-items:flex-start;flex-direction:column}}
-
-.reward-panel{border-color:#58765f;background:linear-gradient(145deg,#17271f,#171b2b)}.reward-balance{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.reward-balance>div,.sponsor-ad{padding:16px;border:1px solid #3d5947;background:#0f1a16;border-radius:12px}.reward-balance span,.reward-balance small,.sponsor-ad span{display:block;color:#b7c9bd;font-size:13px}.reward-balance strong{display:block;font-size:28px}.sponsor-ads{display:grid;gap:12px}.sponsor-ad video{display:block;width:100%;max-height:380px;margin-top:12px;border-radius:9px;background:#050806}.redeem-row{display:grid;grid-template-columns:1fr minmax(130px,.4fr) minmax(180px,.6fr);gap:10px;align-items:end;margin:18px 0}.redeem-row button{margin:7px 0}.reward-history{margin-top:16px}.reward-history p{padding:8px 0;border-bottom:1px solid #30364d;font-size:13px;color:#cbd0e2}@media(max-width:760px){.reward-balance,.redeem-row{grid-template-columns:1fr}}
-
-.spotify-ads-panel{border-color:#477da0;background:linear-gradient(145deg,#142c39,#171b2b)}.ads-campaign-create{display:grid;grid-template-columns:1fr minmax(190px,.55fr);gap:12px;align-items:end;margin-top:14px}.ads-campaign-list{margin-top:16px}.ads-campaign-list p{padding:9px 0;border-bottom:1px solid #344657;color:#cbd7e2}@media(max-width:760px){.ads-campaign-create{grid-template-columns:1fr}}
-
-.auth-choice{text-align:center;max-width:620px;margin:24px auto}.auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin:22px auto 0}.auth-actions button{margin:0}.auth-page{max-width:620px;margin:24px auto}.auth-page form{max-width:460px}.auth-page .section-head{margin-bottom:12px}
-@media(max-width:520px){.auth-actions{grid-template-columns:1fr}.auth-page .section-head{align-items:flex-start}}
+/* GOTHAM / ARKHAM-INSPIRED THEME — original CSS treatment, no game artwork or logos */
+:root{color-scheme:dark;--night:#101316;--panel:#1a2023;--panel2:#14191c;--steel:#354047;--steel2:#59666c;--text:#e1e5e3;--muted:#9ca8a7;--amber:#c6a35b;--amber2:#e1c47e;--red:#8e3938;--green:#718b78;--line:rgba(188,202,196,.16);--shadow:0 18px 48px rgba(0,0,0,.38)}
+*{box-sizing:border-box}
+html{background:#0b0e10;scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--text);font:15px/1.6 "Arial Narrow","Roboto Condensed",system-ui,sans-serif;background:radial-gradient(ellipse at 50% -15%,rgba(93,109,111,.22),transparent 42%),linear-gradient(180deg,#111619 0%,#0b0e10 72%);letter-spacing:.015em}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.13;background-image:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(255,255,255,.025) 4px),radial-gradient(ellipse at 50% 20%,transparent 20%,rgba(0,0,0,.4) 100%);z-index:0}
+main{position:relative;z-index:1;max-width:1160px;margin:auto;padding:30px 22px 44px}
+.hero,.panel{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(34,42,45,.97),rgba(19,24,27,.98));border:1px solid var(--steel);border-radius:3px;padding:25px;margin-bottom:18px;box-shadow:var(--shadow)}
+.hero{padding:40px 34px;background:linear-gradient(110deg,rgba(16,21,24,.98),rgba(36,44,47,.94) 58%,rgba(19,25,28,.98));border-top:2px solid var(--amber)}
+.hero:after{content:"";position:absolute;right:-35px;top:-105px;width:360px;height:360px;border:1px solid rgba(198,163,91,.16);border-radius:50%;box-shadow:0 0 0 28px rgba(198,163,91,.025),0 0 0 58px rgba(198,163,91,.02);pointer-events:none}
+.eyebrow{color:var(--amber2);font-size:11px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;margin:0 0 9px}
+h1{font-size:clamp(36px,7vw,68px);line-height:.98;margin:8px 0 16px;letter-spacing:.07em;font-weight:900;text-transform:uppercase;text-shadow:0 3px 22px #000}
+h1 span{color:var(--amber2)}
+h2{font-size:24px;line-height:1.2;margin:0 0 16px;letter-spacing:.045em;text-transform:uppercase}
+h3{margin:8px 0;color:#e5e9e6;letter-spacing:.035em}
+p{margin:8px 0 13px}
+.status,.muted,.fine,footer{color:var(--muted)}
+.auth-grid,.studio-grid,.features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.features{grid-template-columns:repeat(3,minmax(0,1fr))}
+.features>div,.preview{background:linear-gradient(145deg,#171e21,#101518);border:1px solid var(--line);border-left:2px solid var(--steel2);border-radius:2px;padding:18px}
+.studio-grid{grid-template-columns:1.1fr .9fr}
+label{display:block;font-size:13px;color:#c4ceca;margin:12px 0;letter-spacing:.035em}
+input,textarea,select,button{display:block;width:100%;padding:13px;margin:7px 0;border-radius:2px;border:1px solid #4a575b;background:#0e1316;color:#edf0ed;font:inherit;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--amber);box-shadow:0 0 0 2px rgba(198,163,91,.13)}
+button{background:linear-gradient(180deg,#c8a65f,#9e7d3d);border:1px solid #e0c47f;color:#151719;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-top:14px;transition:filter .15s,transform .15s}
+button:hover{filter:brightness(1.12);transform:translateY(-1px)}
+button:disabled{opacity:.5;cursor:wait;transform:none}
+button.secondary{background:linear-gradient(180deg,#3b474c,#252e32);border:1px solid #59676c;color:#e3e8e5}
+.compact{width:auto;padding:9px 15px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:16px}
+textarea{min-height:96px;resize:vertical}
+.embed-placeholder{border:1px dashed #697579;border-radius:2px;padding:28px 14px;text-align:center;color:var(--muted);min-height:150px;background:#0d1215}
+iframe{border-radius:2px}
+.fine{font-size:12px}
+.hidden{display:none!important}
+.success{color:#b4c9b8;margin:14px 0}
+.error{color:#d78d83;margin:14px 0}
+.campaign{border-top:1px solid var(--line);padding:14px 0}
+.idea{padding:16px;margin:12px 0;background:linear-gradient(145deg,#151c1f,#101518);border:1px solid var(--line);border-left:2px solid var(--amber);border-radius:2px}
+.idea p{margin:7px 0}
+.idea small{color:var(--amber2)}
+.action-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.action-row button{width:auto;padding:9px 12px;margin:6px 0}
+.schedule-list{color:var(--muted);font-size:13px}
+a{color:var(--amber2);text-decoration:none}
+a:hover{text-decoration:underline;color:#f0d99e}
+footer{font-size:11px;padding:18px 4px;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid var(--line)}
+.tiktok-panel,.growth-panel,.playlist-panel,.reward-panel{margin:22px 0 4px;padding:20px;border:1px solid var(--steel);border-radius:2px;background:linear-gradient(145deg,#20282b,#141a1d)}
+.tiktok-panel h3{font-size:20px;margin:0 0 6px}
+.tiktok-panel .button-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border:1px solid var(--amber);border-radius:2px;background:#8e713d;color:#fff;text-decoration:none;font-weight:800}
+.tiktok-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:end;margin-top:16px}
+.tiktok-tools button{max-width:220px}
+.tiktok-tools #tiktokTestResult{padding:12px;border:1px solid var(--line);border-radius:2px;background:#0d1215;min-height:72px}
+.tiktok-panel .fine{margin:14px 0 0}
+.growth-panel{border-top:2px solid var(--green)}
+.growth-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.growth-grid form,.artist-card,.experiment-panel{padding:16px;background:#111719;border:1px solid var(--line);border-radius:2px}
+.artist-image{width:100%;max-height:160px;object-fit:cover;border-radius:2px}
+.experiment-panel{margin-top:20px}
+.experiment-panel form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.experiment-panel button{grid-column:1/-1}
+.allocation-list{display:grid;gap:12px;margin:16px 0}
+.allocation-row{padding:12px;background:#111719;border:1px solid var(--line);border-radius:2px}
+.allocation-row span{display:block;color:var(--muted);font-size:13px}
+.bar{height:7px;background:#303a3e;border-radius:0;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#8b713f,#e1c47e)}
+.growth-history{margin-top:14px;color:#cbd0cc;font-size:13px}
+.growth-history p{padding:8px;border-bottom:1px solid var(--line)}
+.playlist-panel{border-top:2px solid #68777c}
+.playlist-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.playlist-layout form,.playlist-ranking,.playlist-queue{padding:16px;background:#111719;border:1px solid var(--line);border-radius:2px}
+.playlist-ranking{min-height:220px}
+.playlist-ranking h3{margin-top:0}
+.target-score{padding:10px 0;border-bottom:1px solid var(--line)}
+.target-score span,.playlist-queue-item span,.playlist-queue-item small{display:block;color:#aebbb7;font-size:13px}
+.target-score p{font-size:13px;color:#9eaaa7;margin:4px 0}
+.pitch-draft{white-space:pre-wrap;overflow-wrap:anywhere;background:#0a0f11;padding:12px;border-radius:2px;color:#e4e9e5;border:1px solid var(--line)}
+.playlist-queue{margin-top:18px}
+.playlist-queue-item{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line)}
+.playlist-queue-item button{margin:0}
+.reward-panel{border-top:2px solid var(--amber);background:linear-gradient(145deg,#202720,#151b1a)}
+.reward-balance{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.reward-balance>div,.sponsor-ad{padding:16px;border:1px solid #4d5b50;background:#101714;border-radius:2px}
+.reward-balance span,.reward-balance small,.sponsor-ad span{display:block;color:#b7c4b9;font-size:13px}
+.reward-balance strong{display:block;font-size:28px;color:#e4d2a4}
+.sponsor-ads{display:grid;gap:12px}
+.sponsor-ad video{display:block;width:100%;max-height:380px;margin-top:12px;border-radius:2px;background:#050806}
+.redeem-row{display:grid;grid-template-columns:1fr minmax(130px,.4fr) minmax(180px,.6fr);gap:10px;align-items:end;margin:18px 0}
+.redeem-row button{margin:7px 0}
+.reward-history{margin-top:16px}
+.reward-history p{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;color:#cbd0e2}
+.spotify-ads-panel{border-top:2px solid #71858a}
+.auth-choice,.auth-page{max-width:760px;margin-left:auto;margin-right:auto}
+.auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#health{font-size:13px;letter-spacing:.04em}
+@media(max-width:760px){main{padding:14px}.auth-grid,.studio-grid,.features,.growth-grid,.experiment-panel form,.playlist-layout,.tiktok-tools{grid-template-columns:1fr}.hero,.panel{padding:19px}.hero{padding:28px 20px}.section-head{align-items:flex-start}.reward-balance{grid-template-columns:1fr 1fr}.redeem-row{grid-template-columns:1fr}.tiktok-tools button{max-width:none}.playlist-queue-item{align-items:flex-start;flex-direction:column}}

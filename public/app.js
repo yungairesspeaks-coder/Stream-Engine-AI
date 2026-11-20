@@ -5,12 +5,9 @@ function trackId(url){try{const u=new URL(url);if(!["open.spotify.com","www.open
 function showMessage(s,error=false){$("#message").textContent=s;$("#message").className=error?"error":"success"}
 function renderSpotify(url){const id=trackId(url);$("#spotifyEmbed").innerHTML=id?'<iframe title="Spotify track preview" src="https://open.spotify.com/embed/track/'+encodeURIComponent(id)+'?utm_source=generator" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>':'Your official Spotify track preview will appear here after you add a track link.'}
 function renderVideo(v,c){const ready=v.videoStatus==="completed",running=v.videoStatus==="generating";return '<div class="idea"><strong>'+esc(v.concept)+'</strong><p><b>Hook:</b> '+esc(v.hook)+'</p><p><b>Script:</b> '+esc(v.script)+'</p><p>'+esc(v.caption)+'</p><small>'+esc(v.hashtags)+'</small><p class="video-state">Clip: '+esc(v.videoStatus||"NOT_STARTED")+'</p><div class="action-row"><button class="secondary generate-video" data-campaign="'+esc(c.id)+'" data-video="'+esc(v.id)+'" '+(running?'disabled':'')+'>'+(running?'Generating…':ready?'Regenerate clip':'Generate AI clip')+'</button>'+(ready?'<a class="download" href="/api/videos/'+encodeURIComponent(v.id)+'/download">Download MP4</a>':'')+'<button class="secondary schedule" data-campaign="'+esc(c.id)+'" data-video="'+esc(v.id)+'" data-caption="'+esc(v.caption)+'">Schedule draft</button></div></div>'}
-async function load(){try{const me=await api("/api/me");$("#health").textContent="Railway API connected · Signed in as "+(me.displayName||me.email);$("#workspace").classList.remove("hidden");const campaigns=await api("/api/campaigns");await loadSponsorRewards();await loadSpotifyAds();$("#library").innerHTML='<h3>Your campaigns</h3>'+ (campaigns.length?campaigns.map(c=>'<article class="campaign"><h3>'+esc(c.title)+'</h3><p><a href="'+esc(c.songUrl)+'" target="_blank" rel="noopener">Open Spotify track</a></p>'+c.videos.map(v=>renderVideo(v,c)).join("")+'<div class="schedule-list">'+(c.scheduledPosts||[]).map(p=>'<p>Draft · '+esc(new Date(p.scheduledAt).toLocaleString())+'</p>').join("")+'</div></article>').join(""):'<p class="muted">Your generated campaigns will appear here.</p>');document.querySelectorAll(".schedule").forEach(b=>b.addEventListener("click",()=>scheduleDraft(b)));document.querySelectorAll(".publish-tiktok").forEach(b=>b.addEventListener("click",()=>publishTikTok(b)));document.querySelectorAll(".generate-video").forEach(b=>b.addEventListener("click",()=>generateVideo(b)))}catch(e){$("#health").textContent="Railway API online · Sign in to open your workspace";$("#workspace").classList.add("hidden")}}
+async function load(){try{const me=await api("/api/me");$("#health").textContent="Railway API connected · Signed in as "+(me.displayName||me.email);updateAuthVisibility(true);const campaigns=await api("/api/campaigns");await loadSponsorRewards();await loadSpotifyAds();$("#library").innerHTML='<h3>Your campaigns</h3>'+ (campaigns.length?campaigns.map(c=>'<article class="campaign"><h3>'+esc(c.title)+'</h3><p><a href="'+esc(c.songUrl)+'" target="_blank" rel="noopener">Open Spotify track</a></p>'+c.videos.map(v=>renderVideo(v,c)).join("")+'<div class="schedule-list">'+(c.scheduledPosts||[]).map(p=>'<p>Draft · '+esc(new Date(p.scheduledAt).toLocaleString())+'</p>').join("")+'</div></article>').join(""):'<p class="muted">Your generated campaigns will appear here.</p>');document.querySelectorAll(".schedule").forEach(b=>b.addEventListener("click",()=>scheduleDraft(b)));document.querySelectorAll(".publish-tiktok").forEach(b=>b.addEventListener("click",()=>publishTikTok(b)));document.querySelectorAll(".generate-video").forEach(b=>b.addEventListener("click",()=>generateVideo(b)))}catch(e){$("#health").textContent="Railway API online · Sign in to open your workspace";updateAuthVisibility(false);showAuthPage("authChoice")}}
 async function generateVideo(b){b.disabled=true;b.textContent="Generating AI visual + MP4…";try{const r=await api("/api/campaigns/"+b.dataset.campaign+"/videos/"+b.dataset.video+"/generate",{});showMessage(r.message);await load()}catch(e){showMessage(e.message,true);b.disabled=false;b.textContent="Generate AI clip"}}
 async function scheduleDraft(button){const value=prompt("Choose a future date and time (example: 2026-12-01T18:30:00-05:00):");if(!value)return;const when=new Date(value);if(Number.isNaN(when.getTime()))return showMessage("Enter a valid date and time.",true);try{const result=await api("/api/campaigns/"+button.dataset.campaign+"/schedule",{scheduledAt:when.toISOString(),videoAssetId:button.dataset.video,caption:button.dataset.caption});showMessage(result.note);load()}catch(e){showMessage(e.message,true)}}
-$("#register").addEventListener("submit",async e=>{e.preventDefault();try{const d=Object.fromEntries(new FormData(e.target));await api("/api/auth/register",d);showMessage("Account created. Welcome to Stream Engine AI.");await load()}catch(x){showMessage(x.message,true)}});
-$("#login").addEventListener("submit",async e=>{e.preventDefault();try{await api("/api/auth/login",Object.fromEntries(new FormData(e.target)));showMessage("You are signed in.");await load()}catch(x){showMessage(x.message,true)}});
-$("#logout").addEventListener("click",async()=>{try{await api("/api/auth/logout",{});$("#workspace").classList.add("hidden");$("#health").textContent="Signed out"}catch(e){showMessage(e.message,true)}});
 $("#campaign").addEventListener("submit",async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(e.target));b.count=Number(b.count);try{const r=await api("/api/campaigns",b);renderSpotify(b.songUrl);showMessage("Created campaign with "+r.generated+" concepts. "+r.note);await load()}catch(x){showMessage(x.message,true)}});
 $("#campaign").elements.songUrl.addEventListener("change",e=>renderSpotify(e.target.value));
 (async()=>{try{await api("/health");$("#health").textContent="Railway API online"}catch{$("#health").textContent="Connecting to Railway API…"}await load()})();
@@ -41,4 +38,34 @@ $("#connectSpotifyAds").addEventListener("click",()=>location.href="/api/spotify
 $("#refreshSpotifyAds").addEventListener("click",loadSpotifyAds);
 $("#selectSpotifyAdsAccount").addEventListener("click",async()=>{const [businessId,adAccountId]=($("#spotifyAdsAccount").value||"").split("|");if(!businessId||!adAccountId)return showMessage("Choose an available Spotify Ads account first.",true);try{await api("/api/spotify-ads/select-account",{businessId,adAccountId});showMessage("Spotify Ads account selected.");await loadSpotifyAds()}catch(e){showMessage(e.message,true)}});
 $("#createSpotifyAdsCampaign").addEventListener("click",async()=>{const name=$("#spotifyAdsCampaignName").value.trim();if(!name)return showMessage("Enter a campaign name.",true);if(!confirm("Create this campaign container in your connected Spotify Ads Manager account? This does not publish ads or spend money."))return;try{const r=await api("/api/spotify-ads/campaigns",{name,confirmCreateContainer:true});showMessage(r.note);await loadSpotifyAds()}catch(e){showMessage(e.message,true)}});
-\nif(new URLSearchParams(location.search).get("spotify_ads")==="connected"){history.replaceState({}, "", "/");showMessage("Spotify Ads Manager connected.");}\nif(new URLSearchParams(location.search).get("spotify_ads")==="error"){history.replaceState({}, "", "/");showMessage("Spotify Ads connection failed. Check app settings and Railway logs.",true);}\n
+
+function showAuthPage(page){
+  ["authChoice","registerPage","loginPage"].forEach(id=>$("#"+id)?.classList.add("hidden"));
+  if(page)$("#"+page)?.classList.remove("hidden");
+}
+$("#openRegister")?.addEventListener("click",()=>showAuthPage("registerPage"));
+$("#openLogin")?.addEventListener("click",()=>showAuthPage("loginPage"));
+$("#backFromRegister")?.addEventListener("click",()=>showAuthPage("authChoice"));
+$("#backFromLogin")?.addEventListener("click",()=>showAuthPage("authChoice"));
+function updateAuthVisibility(signedIn){
+  $("#authChoice")?.classList.toggle("hidden",signedIn);
+  $("#registerPage")?.classList.add("hidden");
+  $("#loginPage")?.classList.add("hidden");
+  ["workspace",".reward-panel",".spotify-ads-panel",".growth-panel",".playlist-panel"].forEach(sel=>$(sel)?.classList.toggle("hidden",!signedIn));
+}
+$("#register")?.addEventListener("submit",async e=>{
+  e.preventDefault();const b=e.submitter;b.disabled=true;
+  try{await api("/api/auth/register",Object.fromEntries(new FormData(e.currentTarget)));showMessage("Account created. Welcome to Stream Engine AI.");await load();}
+  catch(x){showMessage(x.message,true);}finally{b.disabled=false;}
+});
+$("#login")?.addEventListener("submit",async e=>{
+  e.preventDefault();const b=e.submitter;b.disabled=true;
+  try{await api("/api/auth/login",Object.fromEntries(new FormData(e.currentTarget)));showMessage("You are signed in.");await load();}
+  catch(x){showMessage(x.message,true);}finally{b.disabled=false;}
+});
+$("#logout")?.addEventListener("click",async()=>{
+  try{await api("/api/auth/logout",{});updateAuthVisibility(false);showAuthPage("authChoice");$("#health").textContent="Signed out";}
+  catch(e){showMessage(e.message,true);}
+});
+if(new URLSearchParams(location.search).get("spotify_ads")==="connected"){history.replaceState({}, "", "/");showMessage("Spotify Ads Manager connected.");}
+if(new URLSearchParams(location.search).get("spotify_ads")==="error"){history.replaceState({}, "", "/");showMessage("Spotify Ads connection failed. Check app settings and Railway logs.",true);}

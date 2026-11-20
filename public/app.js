@@ -24,7 +24,7 @@ async function requestAdMobReward(){
   if(!window.ReactNativeWebView){showMessage("Rewarded ads are available in the Stream Engine AI Android app.",true);return}
   button.disabled=true;button.textContent="Preparing rewarded ad…";
   try{
-    const session=await api("/api/rewards/admob-session");
+    const session=await api("/api/rewards/admob-session",{});
     window.ReactNativeWebView.postMessage(JSON.stringify({type:"SHOW_ADMOB_REWARDED",customData:session.customData,userId:session.userId,rewardCredits:session.rewardCredits}));
     button.textContent="Ad request sent · waiting for completion";window.setTimeout(()=>{if(button.disabled&&button.textContent==="Ad request sent · waiting for completion"){button.disabled=false;button.textContent="Watch rewarded ad";showMessage("No ad response received. Please try again.",true)}},45000);
   }catch(e){showMessage(e.message,true);button.disabled=false;button.textContent="Watch rewarded ad"}

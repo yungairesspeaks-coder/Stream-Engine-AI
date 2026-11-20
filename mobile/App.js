@@ -1,12 +1,10 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
-import {ActivityIndicator, Alert, BackHandler, Platform, SafeAreaView, StatusBar, Text, View} from "react-native";
+import React, {useEffect, useRef, useState} from "react";
+import {ActivityIndicator, Alert, BackHandler, SafeAreaView, StatusBar, Text, View} from "react-native";
 import {WebView} from "react-native-webview";
 import mobileAds, {AdEventType, RewardedAd, RewardedAdEventType, TestIds} from "react-native-google-mobile-ads";
 
 const SITE_URL = "https://yung-aires-stream-engine-ai-production.up.railway.app/";
-const ANDROID_AD_UNIT = process.env.EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID;
-const IOS_AD_UNIT = process.env.EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID;
-const AD_UNIT_ID = __DEV__ ? TestIds.REWARDED : (Platform.OS === "ios" ? IOS_AD_UNIT : ANDROID_AD_UNIT);
+const AD_UNIT_ID = TestIds.REWARDED;
 
 export default function App() {
   const web = useRef(null);
@@ -29,12 +27,23 @@ export default function App() {
     try { data = JSON.parse(event.nativeEvent.data); } catch { return; }
     if (data?.type !== "SHOW_ADMOB_REWARDED") return;
     if (!ready) { setMessage("Ad service is still starting. Try again in a moment."); return; }
-    if (!AD_UNIT_ID) { setMessage("AdMob is not configured for this app build yet. Add your platform rewarded ad unit ID."); return; }
+    
     if (!data.customData || !data.userId || String(data.customData).length > 1500) {
       setMessage("The reward session could not be validated. Sign in again."); return;
     }
+    setMessage("Checking rewarded ad configuration…");
+    let adUnitId = AD_UNIT_ID;
+    if (!__DEV__) {
+      try {
+        const configResponse = await fetch(SITE_URL + "api/rewards/admob-config");
+        if (!configResponse.ok) throw new Error("AdMob is not configured on the server.");
+        const config = await configResponse.json();
+        adUnitId = config.androidRewardedAdUnitId;
+        if (!adUnitId) throw new Error("Android rewarded ad unit ID is missing in Railway variables.");
+      } catch (error) { setMessage(error.message || "AdMob configuration unavailable."); return; }
+    }
     setMessage("Loading a rewarded ad…");
-    const ad = RewardedAd.createForAdRequest(AD_UNIT_ID, {
+    const ad = RewardedAd.createForAdRequest(adUnitId, {
       requestNonPersonalizedAdsOnly: true,
       serverSideVerificationOptions: {userId: String(data.userId), customData: String(data.customData)}
     });

@@ -67,7 +67,7 @@ async function verifyAdMobSsv(req){
   const token=params.get("custom_data");
   if(!token)throw Error("Missing reward session token.");
   const session=jwt.verify(token,process.env.JWT_SECRET);
-  if(session.kind!=="admob_reward"||!session.sub)throw Error("Invalid reward session.");
+  if(session.kind!=="admob_reward"||!session.sub||params.get("user_id")!==session.sub)throw Error("Invalid reward session user.");
   const expectedUnit=process.env.ADMOB_REWARDED_AD_UNIT_ID;
   if(!expectedUnit||params.get("ad_unit")!==expectedUnit)throw Error("Unexpected AdMob ad unit.");
   if(params.get("reward_item")!==(process.env.ADMOB_REWARD_ITEM||"campaign_credits"))throw Error("Unexpected AdMob reward item.");
@@ -96,7 +96,7 @@ app.post("/api/spotify-ads/campaigns",auth,async(req,res)=>{const p=z.object({na
 app.post("/api/rewards/admob-session",auth,async(req,res)=>{
   if(!process.env.ADMOB_REWARDED_AD_UNIT_ID)return res.status(503).json({error:"AdMob rewarded ad unit is not configured yet."});
   const customData=jwt.sign({sub:req.uid,kind:"admob_reward"},process.env.JWT_SECRET,{expiresIn:"10m",issuer:"stream-engine-ai"});
-  res.json({customData,expiresInSeconds:600,rewardCredits:Number(process.env.ADMOB_REWARD_CREDITS||"10")});
+  res.json({customData,userId:req.uid,expiresInSeconds:600,rewardCredits:Number(process.env.ADMOB_REWARD_CREDITS||"10")});
 });
 app.get("/webhooks/admob/reward",async(req,res)=>{
   try{

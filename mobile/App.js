@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {ActivityIndicator, Alert, BackHandler, Platform, SafeAreaView, StatusBar, Text, View} from "react-native";
 import {WebView} from "react-native-webview";
-import mobileAds, {RewardedAd, RewardedAdEventType, TestIds} from "react-native-google-mobile-ads";
+import mobileAds, {AdEventType, RewardedAd, RewardedAdEventType, TestIds} from "react-native-google-mobile-ads";
 
 const SITE_URL = "https://yung-aires-stream-engine-ai-production.up.railway.app/";
 const ANDROID_AD_UNIT = process.env.EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID;
@@ -48,13 +48,13 @@ export default function App() {
       earned = true;
       setMessage("Ad completed. Google is verifying your reward; credits appear after server confirmation.");
     });
-    const unsubClosed = ad.addAdEventListener(RewardedAdEventType.CLOSED, () => {
+    const unsubClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
       setMessage(earned ? "Reward verification pending. Refresh your wallet shortly." : "Ad closed before completion. No credits were earned.");
       unsubLoaded(); unsubEarned(); unsubClosed();
       setTimeout(() => web.current?.injectJavaScript("window.location.reload(); true;"), 2500);
       adRef.current = null;
     });
-    const unsubError = ad.addAdEventListener(RewardedAdEventType.ERROR, (error) => {
+    const unsubError = ad.addAdEventListener(AdEventType.ERROR, (error) => {
       setMessage("Ad unavailable: " + (error?.message || "Please try again later."));
       unsubLoaded(); unsubEarned(); unsubClosed(); unsubError(); adRef.current = null;
     });
